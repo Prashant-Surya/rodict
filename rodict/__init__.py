@@ -4,7 +4,7 @@ from rodict.constants import SUPPORTED_FILE_FORMATS, PARSER_FROM_EXTENSION
 
 class RoDict(MutableMapping):
 
-    # Default separator for the RoDict is ___ (three underscores)
+    # Default separator for the RoDict is __ (two underscores)
     # It can be changed based on the special chars used in the keys of the 
     # dictionary.
     SEPARATOR = "__"
@@ -26,15 +26,29 @@ class RoDict(MutableMapping):
 
     def __goto(self, keys):
         data = self.store
-        for i in range(0, len(keys)):
-            data = data[keys[i]]
+        for key in keys:
+            if key.endswith("]"):
+                temp_key = key.split('[')
+                # Get the value of the dictionary which must be an iterable
+                data = data[temp_key[0]]
+                # Strip away the trailing ]
+                filter_key = temp_key[1].rstrip(']')
+                # Get key, value from filter_key
+                tkey, tvalue = filter_key.split('=')
+                val = list(filter(lambda k: k[tkey] == tvalue, data))
+                data = val[0]
+            else:
+                data = data[key]
         return data
 
     def __getitem__(self, key):
-        if not self.SEPARATOR in key:
-            return self.store[key]
-        keys = key.split(self.SEPARATOR)
-        item = self.__goto(keys)
+        if key.endswith(']'):
+            item = self.__goto([key])
+        elif not self.SEPARATOR in key:
+            item = self.store[key]
+        else:
+            keys = key.split(self.SEPARATOR)
+            item = self.__goto(keys)
         if type(item) == dict:
             return RoDict(store=item)
         return item
