@@ -1,3 +1,4 @@
+import json
 from collections import MutableMapping
 
 from rodict.constants import SUPPORTED_FILE_FORMATS, PARSER_FROM_EXTENSION
@@ -14,6 +15,7 @@ class RoDict(MutableMapping):
         file. If contents cannot be converted into a dictionary it'll fail.
         '''
         file_name = kwargs.get('file_name')
+        self.file_name = file_name
         self.store  = kwargs.get('store', {})
 
         if file_name:
@@ -83,3 +85,10 @@ class RoDict(MutableMapping):
 
     def __str__(self):
         return str(self.store)
+
+    def write(self):
+        file_name, ext = self.file_name.split('.')
+        processed_file = file_name + '-processed.' + ext
+        f = open(processed_file, 'w')
+        f.write(json.dumps(self.store, indent=4))
+        f.close()
