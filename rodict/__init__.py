@@ -9,6 +9,7 @@ class RoDict(MutableMapping):
     # It can be changed based on the special chars used in the keys of the 
     # dictionary.
     SEPARATOR = "__"
+    parser = None
 
     def __init__(self, *args, **kwargs):
         '''Initializes a new RoDict with the contents of a
@@ -22,14 +23,14 @@ class RoDict(MutableMapping):
             file_ext = file_name.split(".")[-1]
             if not file_ext or (file_ext not in SUPPORTED_FILE_FORMATS):
                 raise Exception("Invalid file extension supplied. Supports only " + ' '.join(SUPPORTED_FILE_FORMATS))
-            parser = PARSER_FROM_EXTENSION[file_ext]
-            data_dict = parser(file_name)
+            self.parser = PARSER_FROM_EXTENSION[file_ext]()
+            data_dict = self.parser.read(file_name)
             self.store = data_dict
 
     def __goto(self, keys):
         data = self.store
         for key in keys:
-            if key.endswith("]"):
+            if '[' in key:
                 temp_key = key.split('[')
                 # Get the value of the dictionary which must be an iterable
                 data = data[temp_key[0]]
@@ -87,8 +88,7 @@ class RoDict(MutableMapping):
         return str(self.store)
 
     def write(self):
-        file_name, ext = self.file_name.split('.')
-        processed_file = file_name + '-processed.' + ext
-        f = open(processed_file, 'w')
-        f.write(json.dumps(self.store, indent=4))
-        f.close()
+        if self.parser:
+            self.parser.write(data=self.store)
+        else:
+            raise NotImplementedError("Parser not implemented")

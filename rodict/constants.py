@@ -1,7 +1,7 @@
-from rodict.parsers import json_parser
+from rodict.parsers import JSONParser
 
 SUPPORTED_FILE_FORMATS = ["json"]
 
 PARSER_FROM_EXTENSION = {
-    "json": json_parser,
+    "json": JSONParser
 }
